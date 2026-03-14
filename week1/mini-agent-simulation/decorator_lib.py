@@ -6,8 +6,10 @@ import time
 
 # ==================== 装饰器库 ====================
 
+
 def tool(description: str):
     """注册函数为 Agent 工具"""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> str:
@@ -24,11 +26,13 @@ def tool(description: str):
             description=description,
         )
         return wrapper
+
     return decorator
 
 
 def retry(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
     """智能重试装饰器"""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -41,12 +45,15 @@ def retry(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Except
                         raise
                     logger.warning(f"[{func.__name__}] 第{attempt}次失败: {e}")
                     time.sleep(delay * attempt)  # 指数退避
+
         return wrapper
+
     return decorator
 
 
 def log_execution(func: Callable) -> Callable:
     """执行日志装饰器"""
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         logger.info(f"▶ {func.__name__} 开始")
@@ -60,5 +67,5 @@ def log_execution(func: Callable) -> Callable:
             elapsed = time.perf_counter() - start
             logger.error(f"✗ {func.__name__} 失败 ({elapsed:.3f}s): {e}")
             raise
-    return wrapper
 
+    return wrapper

@@ -2,6 +2,7 @@
 Mini AI Agent Framework
 整合：装饰器 + 上下文管理器 + 类型注解 + Pydantic
 """
+
 # 定义类
 from common_classes import ToolDefinition, AgentConfig, AgentMessage, AgentResult
 from decorator_lib import log_execution
@@ -14,13 +15,15 @@ from typing import Callable
 
 # ==================== Agent 核心 ====================
 
+
 @dataclass
 class ToolRegistry:
     """工具注册表"""
+
     _tools: dict[str, Callable] = field(default_factory=dict)
 
     def register(self, func: Callable) -> None:
-        if getattr(func, '_is_tool', False):
+        if getattr(func, "_is_tool", False):
             self._tools[func.__name__] = func
 
     def get(self, name: str) -> Callable | None:
@@ -81,12 +84,16 @@ class MiniAgent:
                         state["tool_calls"].append(tool_name)
                         state["tokens_used"] += 100
 
-                        self.history.append(AgentMessage(
-                            role="assistant",
-                            content=f"[Tool: {tool_name}]\n输入: {tool_args}\n输出: {result}",
-                            metadata={"tool": tool_name}
-                        ))
-                        current_task = f"基于工具结果回答原始问题: {task}\n工具结果: {result}"
+                        self.history.append(
+                            AgentMessage(
+                                role="assistant",
+                                content=f"[Tool: {tool_name}]\n输入: {tool_args}\n输出: {result}",
+                                metadata={"tool": tool_name},
+                            )
+                        )
+                        current_task = (
+                            f"基于工具结果回答原始问题: {task}\n工具结果: {result}"
+                        )
 
             return AgentResult(
                 success=bool(final_answer),
@@ -101,14 +108,20 @@ class MiniAgent:
         # 简单的规则模拟，实际是 LLM 输出
         if iteration == 1 and ("搜索" in task or "查找" in task or "最新" in task):
             return {"type": "tool", "tool": "web_search", "args": {"query": task}}
-        elif iteration == 1 and ("计算" in task or "等于" in task or any(c.isdigit() for c in task)):
+        elif iteration == 1 and (
+            "计算" in task or "等于" in task or any(c.isdigit() for c in task)
+        ):
             # 提取简单表达式
             import re
-            expr_match = re.search(r'[\d\+\-\*\/\(\)\. ]+', task)
+
+            expr_match = re.search(r"[\d\+\-\*\/\(\)\. ]+", task)
             expr = expr_match.group().strip() if expr_match else "1+1"
             return {"type": "tool", "tool": "calculator", "args": {"expression": expr}}
         else:
-            return {"type": "final", "content": f"基于分析，任务 '{task}' 的答案是：[模拟的最终回答]"}
+            return {
+                "type": "final",
+                "content": f"基于分析，任务 '{task}' 的答案是：[模拟的最终回答]",
+            }
 
 
 # ==================== 使用示例 ====================
@@ -138,9 +151,9 @@ if __name__ == "__main__":
     ]
 
     for task in test_tasks:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"任务: {task}")
-        print('='*60)
+        print("=" * 60)
 
         result = agent.run(task)
 

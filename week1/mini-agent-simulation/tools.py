@@ -3,6 +3,7 @@ import time
 
 # ==================== 工具集 ====================
 
+
 @tool(description="搜索网络获取最新信息")
 @retry(max_attempts=2, delay=0.5)
 def web_search(query: str) -> str:
@@ -16,6 +17,7 @@ def python_repl(code: str) -> str:
     """安全的代码执行环境"""
     import io
     from contextlib import redirect_stdout
+
     output = io.StringIO()
     try:
         with redirect_stdout(output):
@@ -37,4 +39,3 @@ def calculator(expression: str) -> str:
         return f"{expression} = {result}"
     except Exception as e:
         return f"[计算错误] {e}"
-
