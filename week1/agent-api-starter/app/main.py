@@ -9,11 +9,18 @@ from openai import AsyncOpenAI
 
 from app.schemas import ChatRequest, ChatResponse
 from app.memory import InMemoryChatStore
-from app.tools import get_time, search_docs
+from app.db import init_db
+from app.tools import get_time, search_local_docs, query_tasks
 
 load_dotenv()
 
 app = FastAPI(title="Minimal Agent Backend")
+
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+
 
 api_key = os.getenv("OPENAI_API_KEY")
 model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -35,14 +42,36 @@ TOOLS: list[dict[str, Any]] = [
     },
     {
         "type": "function",
-        "name": "search_docs",
-        "description": "Search the local knowledge base for technical concepts",
+        "name": "search_local_docs",
+        "description": "Search the local markdown knowledge base",
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "The search query"}
+                "query": {"type": "string", "description": "Search query"},
+                "top_k": {
+                    "type": "integer",
+                    "description": "Maximum number of results",
+                    "minimum": 1,
+                    "maximum": 5,
+                },
             },
             "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "type": "function",
+        "name": "query_tasks",
+        "description": "Query project tasks from the local SQLite database",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["open", "in_progress", "done"],
+                    "description": "Task status",
+                }
+            },
             "additionalProperties": False,
         },
     },
@@ -51,7 +80,7 @@ TOOLS: list[dict[str, Any]] = [
 
 def safe_json_loads(raw: str) -> dict[str, Any]:
     try:
-        return json.load(raw)
+        return json.loads(raw)
     except Exception as e:
         return {"error": str(e)}
 
@@ -60,9 +89,17 @@ def run_tool(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         if tool_name == "get_time":
             return get_time()
-        elif tool_name == "search_docs":
-            query = arguments.get("query", "")
-            return search_docs(query)
+
+        if tool_name == "search_local_docs":
+            return search_local_docs(
+                query=arguments.get("query", ""),
+                top_k=arguments.get("top_k", 3),
+            )
+
+        if tool_name == "query_task":
+            return query_tasks(
+                status=arguments.get("status", "open"),
+            )
         return {"error": f"Unknown tool: {tool_name}"}
 
     except Exception as e:
@@ -89,6 +126,7 @@ async def clear_session(session_id: str):
 
 
 @app.post("/chat", response_model=ChatResponse)
+# @app.post("/v1/chat/completions", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     if not api_key:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is missing")
@@ -129,15 +167,12 @@ async def chat(req: ChatRequest):
             second_response = await client.responses.create(
                 model=model_name,
                 instructions=req.system,
-                previous_response_id=first_response.id,
-                input=tool_outputs,
+                input=input_items + list(first_response.output) + tool_outputs,
             )
             final_text = second_response.output_text
         else:
             final_text = first_response.output_text
 
-        print(req.message)
-        print(final_text)
         chat_store.add_user_message(req.session_id, req.message)
         chat_store.add_assistant_message(req.session_id, final_text)
 

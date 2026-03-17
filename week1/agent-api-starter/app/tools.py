@@ -1,27 +1,62 @@
 from datetime import datetime
-from typing import Any
+from pathlib import Path
+
+from app.db import fetch_tasks
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+KNOWLEDGE_DIR = ROOT_DIR / "data" / "knowledge"
 
 
-def get_time() -> dict[str, Any]:
+def get_time() -> dict:
     return {"current_time": datetime.now().isoformat(timespec="seconds")}
 
 
-def search_docs(query: str) -> dict[str, Any]:
-    fake_knowledge_base = {
-        "ai agent": "AI Agent is a system that can reason, use tools, and act to complete tasks.",
-        "rag": "RAG stands for Retrieval-Augmented Generation. It combines retrieval with generation.",
-        "langgraph": "LangGraph is a framework for building stateful, multi-step agent workflows.",
-        "ppgg": "ppgg is a dogs name",
-    }
+def _make_snippet(text: str, query: str, radius: int = 80) -> str:
+    lower_text = text.lower()
+    lower_query = query.lower()
 
-    q = query.lower().strip()
+    idx = lower_text.find(lower_query)
+    if idx == -1:
+        idx = 0
 
-    for key, value in fake_knowledge_base.items():
-        if key in q:
-            return {"query": query, "result": value, "found": True}
+    start = max(0, idx - radius)
+    end = min(len(text), idx + len(query) + radius)
+    return " ".join(text[start:end].split())
+
+
+def search_local_docs(query: str, top_k: int = 3) -> dict:
+    if not KNOWLEDGE_DIR.exists():
+        return {"query": query, "matches": []}
+
+    terms = [term for term in query.lower().split() if term]
+    matches = []
+
+    for path in KNOWLEDGE_DIR.glob("*.md"):
+        text = path.read_text(encoding="utf-8")
+        text_lower = text.lower()
+
+        score = sum(text_lower.count(term) for term in terms)
+
+        if score > 0:
+            matches.append(
+                {
+                    "file": path.name,
+                    "score": score,
+                    "snippet": _make_snippet(text, terms[0] if terms else query),
+                }
+            )
+
+    matches.sort(key=lambda item: item["score"], reverse=True)
 
     return {
         "query": query,
-        "result": "No relevant document found in local knowledge base.",
-        "found": False,
+        "matches": matches[:top_k],
+    }
+
+
+def query_tasks(status: str = "open") -> dict:
+    items = fetch_tasks(status)
+    return {
+        "status": status,
+        "items": items,
     }

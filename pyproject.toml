@@ -6,10 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.135.1",
-    "httpx[socks]>=0.28.1",       # for wsl2 clash proxy settings, can be ignored 
+    "httpx[socks]>=0.28.1",       # for wsl2 clash proxy settings, can be ignored
     "openai>=2.26.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
+    "requests>=2.32.5",
 ]
 
 [dependency-groups]
