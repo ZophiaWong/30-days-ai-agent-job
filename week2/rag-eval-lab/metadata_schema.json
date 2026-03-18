@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "required": [
+    "doc_id",
+    "source",
+    "source_url",
+    "title",
+    "section",
+    "created_at",
+    "topic",
+    "language",
+    "doc_type",
+    "fetched_at",
+    "local_path"
+  ],
+  "properties": {
+    "doc_id": { "type": "string" },
+    "source": { "type": "string" },
+    "source_url": { "type": "string" },
+    "title": { "type": "string" },
+    "section": { "type": ["string", "null"] },
+    "created_at": { "type": ["string", "null"] },
+    "topic": { "type": "string" },
+    "language": { "type": "string" },
+    "doc_type": { "type": "string" },
+    "fetched_at": { "type": "string" },
+    "local_path": { "type": "string" }
+  }
+}

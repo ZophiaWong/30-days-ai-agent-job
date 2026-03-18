@@ -1,0 +1,35 @@
+sources:
+  - source_id: langgraph_docs
+    kind: docs_site
+    topic: agent_workflow
+    language: en
+    max_docs: 15
+    allow_prefixes:
+      - "https://docs.langchain.com/oss/python/langgraph/"
+    seed_urls:
+      - "https://docs.langchain.com/oss/python/langgraph/overview"
+      - "https://docs.langchain.com/oss/python/langgraph/graph-api"
+      - "https://docs.langchain.com/oss/python/langgraph/memory"
+
+  - source_id: llamaindex_docs
+    kind: docs_site
+    topic: rag_ingestion
+    language: en
+    max_docs: 15
+    allow_prefixes:
+      - "https://developers.llamaindex.ai/python/framework/"
+    seed_urls:
+      - "https://developers.llamaindex.ai/python/framework/"
+      - "https://developers.llamaindex.ai/python/framework/module_guides/loading/simpledirectoryreader/"
+      - "https://developers.llamaindex.ai/python/framework/module_guides/indexing/metadata_extraction/"
+
+  - source_id: qdrant_docs
+    kind: docs_site
+    topic: retrieval
+    language: en
+    max_docs: 15
+    allow_prefixes:
+      - "https://qdrant.tech/documentation/"
+    seed_urls:
+      - "https://qdrant.tech/documentation/"
+      - "https://qdrant.tech/documentation/concepts/hybrid-queries/"
