@@ -1,0 +1,33 @@
+input_dir: data/processed/md
+output_dir: data/chunks
+
+strategies:
+  - name: fixed_300
+    type: fixed
+    chunk_size: 300
+    chunk_overlap: 0
+
+  - name: fixed_500
+    type: fixed
+    chunk_size: 500
+    chunk_overlap: 0
+
+  - name: fixed_800
+    type: fixed
+    chunk_size: 800
+    chunk_overlap: 0
+
+  - name: overlap_500_50
+    type: fixed
+    chunk_size: 500
+    chunk_overlap: 50
+
+  - name: overlap_500_100
+    type: fixed
+    chunk_size: 500
+    chunk_overlap: 100
+
+  - name: structural
+    type: structural
+    max_tokens_per_chunk: 600
+    min_tokens_per_chunk: 120
